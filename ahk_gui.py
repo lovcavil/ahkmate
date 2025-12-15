@@ -160,6 +160,7 @@ class AHKBuilder(tk.Tk):
         self._modifier_event_suppress = False
         self.enabled_check = None
         self.enabled_var = tk.BooleanVar(value=True)
+        self.tooltip_window = None
         self._load_keyboard_profiles()
         self.header_lines = self._load_script_header()
         self._load_settings()
@@ -345,6 +346,8 @@ class AHKBuilder(tk.Tk):
                     btn.configure(
                         command=lambda k=key_id, d=display, b=btn: self._select_key(k, d, b)
                     )
+                    btn.bind("<Enter>", lambda e, k=key_id: self._on_key_hover(e, k))
+                    btn.bind("<Leave>", lambda e: self._hide_tooltip())
                     self.key_buttons[key_id].append(btn)
                 for col in range(len(row)):
                     row_frame.grid_columnconfigure(col, weight=1)
@@ -563,6 +566,7 @@ class AHKBuilder(tk.Tk):
         return max(4, len(label) + 2)
 
     def _select_key(self, key_id, display_label, button):
+        self._hide_tooltip()
         if self.active_button:
             self.active_button.configure(relief="raised", bg="#e1e1e1")
         self.active_button = button
@@ -714,6 +718,65 @@ class AHKBuilder(tk.Tk):
         self.preview_box.delete("1.0", "end")
         self.preview_box.insert("1.0", script)
         self.preview_box.configure(state="disabled")
+
+    def _tooltip_text_for_key(self, key_id):
+        entry = self._get_profile_entry(key_id)
+        if not isinstance(entry, dict):
+            return ""
+        lines = []
+        for modifier in MODIFIER_OPTIONS:
+            info = entry.get(modifier, {})
+            action = ""
+            if isinstance(info, dict):
+                action = str(info.get("action", "") or "").strip()
+                enabled = bool(info.get("enabled", True))
+            else:
+                enabled = True
+            action_display = action if action else "(no action)"
+            status = "" if enabled else " [off]"
+            lines.append(f"{modifier}: {action_display}{status}")
+        if not lines:
+            return ""
+        return "\n".join(lines)
+
+    def _on_key_hover(self, event, key_id):
+        text = self._tooltip_text_for_key(key_id)
+        if not text:
+            self._hide_tooltip()
+            return
+        x = event.x_root + 10
+        y = event.y_root + 10
+        self._show_tooltip(text, x, y)
+
+    def _show_tooltip(self, text, x, y):
+        self._hide_tooltip()
+        if not text:
+            return
+        win = tk.Toplevel(self)
+        win.wm_overrideredirect(True)
+        win.attributes("-topmost", True)
+        label = tk.Label(
+            win,
+            text=text,
+            bg="#ffffe1",
+            fg="#000000",
+            justify="left",
+            relief="solid",
+            borderwidth=1,
+            padx=6,
+            pady=4,
+        )
+        label.pack()
+        win.wm_geometry(f"+{x}+{y}")
+        self.tooltip_window = win
+
+    def _hide_tooltip(self):
+        if self.tooltip_window:
+            try:
+                self.tooltip_window.destroy()
+            except tk.TclError:
+                pass
+            self.tooltip_window = None
 
     def _key_has_binding(self, key_id):
         entry = self.actions_by_profile.get(self.current_profile_id, {}).get(key_id, {})
