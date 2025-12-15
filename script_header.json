@@ -1,0 +1,15 @@
+{
+  "header": [
+    "#SingleInstance force",
+    "#Persistent",
+    "#include Lib\\AutoHotInterception.ahk",
+    "",
+    "AHI := new AutoHotInterception()",
+    "id1 := AHI.GetKeyboardId(0x046D, 0xC31C, 1)",
+    "cm1 := AHI.CreateContextManager(id1)",
+    "id2 := AHI.GetKeyboardId(0x258A, 0x002A, 1)",
+    "cm2 := AHI.CreateContextManager(id2)",
+    "return",
+    ""
+  ]
+}

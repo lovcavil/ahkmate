@@ -1,0 +1,26 @@
+{
+  "profiles": [
+    {
+      "id": "default",
+      "label": "Default keyboard",
+      "condition": "",
+      "device_id": "",
+      "description": "Global profile"
+    },
+    {
+      "id": "id1",
+      "label": "id1 keyboard",
+      "condition": "cm1.IsActive",
+      "device_id": "0x046D,0xC31C,1",
+      "description": "Logitech profile"
+    },
+    {
+      "id": "id2",
+      "label": "id2 keyboard",
+      "condition": "cm2.IsActive",
+      "device_id": "0x258A,0x002A,1",
+      "description": "Secondary profile"
+    }
+  ],
+  "default_profile": "default"
+}

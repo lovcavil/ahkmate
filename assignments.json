@@ -1,0 +1,29 @@
+{
+  "actions": {
+    "default": {
+      "a": {
+        "action": "AAAA",
+        "modifier": "None"
+      }
+    },
+    "id1": {
+      "a": {
+        "action": "BB",
+        "modifier": "None"
+      },
+      "s": {
+        "action": "SS",
+        "modifier": "None"
+      }
+    },
+    "id2": {
+      "s": {
+        "action": "SSSSSS",
+        "modifier": "None"
+      }
+    }
+  },
+  "last_key": "a",
+  "last_profile": "default",
+  "last_text": "AAAA"
+}
