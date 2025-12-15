@@ -1,29 +1,258 @@
 {
   "actions": {
     "default": {
-      "a": {
-        "action": "AAAA",
-        "modifier": "None"
+      "esc": {
+        "Ctrl": {
+          "action": "ExitApp",
+          "enabled": true
+        }
       }
     },
     "id1": {
+      ",": {
+        "None": {
+          "action": "ClipSaved := ClipboardAll\nClipboard := \"\"\nSend, ^c\nClipWait, 2\nif (!Clipboard) {\n    Clipboard := ClipSaved\n    return\n}\nClipboard := StrSplit(Clipboard, \"\\\\\").Pop()\nif (Clipboard = \"\") {\n    Clipboard := ClipSaved\n    return\n}\nTooltip, Copied: %Clipboard%\nSetTimer, RemoveTooltip, -1000\nreturn\nRemoveTooltip:\n    Tooltip\n    return\nRestoreClipboard:\n    Clipboard := ClipSaved\n    return",
+          "enabled": true
+        }
+      },
+      ".": {
+        "None": {
+          "action": "^v",
+          "enabled": true
+        }
+      },
+      "1": {
+        "None": {
+          "action": "ToolTip % \"1KEY DOWN EVENT @ \" A_TickCount\nreturn",
+          "enabled": true
+        }
+      },
       "a": {
-        "action": "BB",
-        "modifier": "None"
+        "None": {
+          "action": "run, \"C:\\Program Files\\MSC.Software\\Adams\\2020_711253\\common\\mdi.bat\" \"aview\" \"ru-st\" \"i\"",
+          "enabled": true
+        },
+        "Shift": {
+          "action": "run, \"C:\\MSC.Software\\Adams\\2019\\common\\mdi.bat\" \"aview\" \"ru-st\" \"i\"",
+          "enabled": true
+        }
+      },
+      "b": {
+        "None": {
+          "action": "Send ^+b",
+          "enabled": true
+        }
+      },
+      "c": {
+        "None": {
+          "action": "run, \"C:\\Program Files (x86)\\Dassault Systemes\\B21\\intel_a\\code\\bin\\CATSTART.exe\"  \"-run\" \"CNEXT.exe\" \"-env CATIA_P3.V5R21.B21\" \"-direnv\" \"C:\\ProgramData\\DassaultSystemes\\CATEnv\" \"-nowindow\"",
+          "enabled": true
+        }
+      },
+      "d": {
+        "None": {
+          "action": "run, \"D:\\OneDrive\\Articles\\10.Working\\[D21][20211009]ContactMechanics\\MBD.jl\\A11.start_cmdmgr_office.bat\"",
+          "enabled": true
+        }
+      },
+      "f": {
+        "None": {
+          "action": "run, \"C:\\Windows\\system32\\cmd.exe\" \"/c\" \"C:\\Program Files\\ECS\\FEMFAT5.4/bin/femfat2.bat\"",
+          "enabled": true
+        }
+      },
+      "f1": {
+        "None": {
+          "action": "Send ^+!{F1}",
+          "enabled": true
+        }
+      },
+      "f2": {
+        "None": {
+          "action": "Send ^+!{F2}",
+          "enabled": true
+        }
+      },
+      "f3": {
+        "None": {
+          "action": "Send ^+!{F3}",
+          "enabled": true
+        }
+      },
+      "f4": {
+        "None": {
+          "action": "Send ^+!{F4}",
+          "enabled": true
+        }
+      },
+      "f5": {
+        "None": {
+          "action": "Send ^+!{F5}",
+          "enabled": true
+        }
+      },
+      "f6": {
+        "None": {
+          "action": "Send ^+!{F6}",
+          "enabled": true
+        }
+      },
+      "h": {
+        "None": {
+          "action": "run, \"C:\\Users\\tongjiachi\\Desktop\\Software\\HyperMesh 2021.lnk\"",
+          "enabled": true
+        }
+      },
+      "j": {
+        "None": {
+          "action": "run, \"C:\\Users\\tongjiachi\\Desktop\\Software\\HyperView 2021.lnk\"",
+          "enabled": true
+        }
+      },
+      "m": {
+        "None": {
+          "action": "run, \"E:\\Program Files\\MATLAB\\R2024a\\bin\\matlab.exe\"",
+          "enabled": true
+        }
+      },
+      "n": {
+        "None": {
+          "action": "Send ^+!b",
+          "enabled": true
+        }
+      },
+      "numpad0": {
+        "None": {
+          "action": "^+c",
+          "enabled": true
+        }
+      },
+      "numpad8": {
+        "None": {
+          "action": "Reload",
+          "enabled": true
+        }
+      },
+      "numpad9": {
+        "None": {
+          "action": "run, \"C:\\Users\\lovca\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"C:\\Users\\lovca\\OneDrive\\Articles\\55.Script\\AHK\\AutoHotInterceptionHX\\__MY_WARPHX.ahk\"",
+          "enabled": true
+        }
+      },
+      "o": {
+        "None": {
+          "action": "Run C:\\Users\\tongjiachi\\AppData\\Local\\Obsidian\\Obsidian.exe",
+          "enabled": true
+        }
+      },
+      "q": {
+        "None": {
+          "action": "Run calc.exe",
+          "enabled": true
+        }
+      },
+      "r": {
+        "None": {
+          "action": "Run chrome.exe",
+          "enabled": true
+        }
       },
       "s": {
-        "action": "SS",
-        "modifier": "None"
+        "None": {
+          "action": "Send #+s",
+          "enabled": true
+        }
+      },
+      "t": {
+        "None": {
+          "action": "run, \"C:\\Program Files (x86)\\LMS\\LMS Tecware 3.11\\tcltk\\bin\\wish.exe\" \"C:\\Program Files (x86)\\LMS\\LMS Tecware 3.11\\tecware.tcl\" \"desktop\"",
+          "enabled": true
+        }
+      },
+      "v": {
+        "None": {
+          "action": "^v",
+          "enabled": true
+        }
+      },
+      "z": {
+        "None": {
+          "action": "Send !+q",
+          "enabled": true
+        }
       }
     },
     "id2": {
-      "s": {
-        "action": "SSSSSS",
-        "modifier": "None"
+      "numpad0": {
+        "None": {
+          "action": "Send, ^/",
+          "enabled": true
+        }
+      },
+      "numpad1": {
+        "None": {
+          "action": "Send ^i",
+          "enabled": true
+        }
+      },
+      "numpad2": {
+        "None": {
+          "action": "Send ^b",
+          "enabled": true
+        }
+      },
+      "numpad3": {
+        "None": {
+          "action": "word := ComObjActive(\"Word.Application\")\nif !IsObject(word)\n    return\nword.Selection.Font.Color := 255",
+          "enabled": true
+        }
+      },
+      "numpad6": {
+        "None": {
+          "action": "word := ComObjActive(\"Word.Application\")\nif !IsObject(word)\n    return\nword.Selection.Font.Color := 0",
+          "enabled": true
+        }
+      },
+      "numpad7": {
+        "None": {
+          "action": "Send, ^!q",
+          "enabled": true
+        }
+      },
+      "numpad8": {
+        "None": {
+          "action": "Send !\\",
+          "enabled": true
+        }
+      },
+      "numpad9": {
+        "None": {
+          "action": "Send ^c\nClipWait, 1\ntext := Clipboard\ntext := StrReplace(text, \"(\", \"$\")\ntext := StrReplace(text, \")\", \"$\")\nClipboard := text\nSend ^v",
+          "enabled": true
+        }
+      },
+      "numpadadd": {
+        "None": {
+          "action": "Send, ^=",
+          "enabled": true
+        }
+      },
+      "numpadenter": {
+        "None": {
+          "action": "Send ^{Space}",
+          "enabled": true
+        }
+      },
+      "numpadsub": {
+        "None": {
+          "action": "Send, ^+{+}",
+          "enabled": true
+        }
       }
     }
   },
-  "last_key": "a",
-  "last_profile": "default",
-  "last_text": "AAAA"
+  "last_key": "numpad9",
+  "last_modifier": "None",
+  "last_profile": "id1",
+  "last_text": "run, \"C:\\Users\\lovca\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"C:\\Users\\lovca\\OneDrive\\Articles\\55.Script\\AHK\\AutoHotInterceptionHX\\__MY_WARPHX.ahk\""
 }

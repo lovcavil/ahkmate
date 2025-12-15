@@ -1,0 +1,32 @@
+{
+  "actions": {
+    "default": {
+      "a": {
+        "Ctrl": {
+          "action": "A",
+          "enabled": true
+        },
+        "None": {
+          "action": "B",
+          "enabled": true
+        }
+      },
+      "d": {
+        "Alt": {
+          "action": "V",
+          "enabled": true
+        }
+      },
+      "s": {
+        "None": {
+          "action": "SSSS",
+          "enabled": true
+        }
+      }
+    }
+  },
+  "last_key": "a",
+  "last_modifier": "Alt",
+  "last_profile": "default",
+  "last_text": "B"
+}

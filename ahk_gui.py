@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import json
 import os
+from collections import defaultdict
 from pathlib import Path
 
 import tkinter as tk
@@ -53,11 +54,11 @@ KEY_SECTIONS = [
     (
         "Numeric Keypad",
         [
-            ["numlock", "/", "*"],
-            ["7", "8", "9", "+"],
-            ["4", "5", "6", "-"],
-            ["1", "2", "3", "0"],
-            [".", "enter"],
+            ["numlock", "numpaddiv", "numpadmult"],
+            ["numpad7", "numpad8", "numpad9", "numpadadd"],
+            ["numpad4", "numpad5", "numpad6", "numpadsub"],
+            ["numpad1", "numpad2", "numpad3", "numpad0"],
+            ["numpaddot", "numpadenter"],
         ],
     ),
 ]
@@ -90,6 +91,22 @@ KEY_NAME_OVERRIDES = {
     "`": "Grave",
     "~": "Tilde",
     "[=]": "Equal",
+    "numpad0": "Numpad0",
+    "numpad1": "Numpad1",
+    "numpad2": "Numpad2",
+    "numpad3": "Numpad3",
+    "numpad4": "Numpad4",
+    "numpad5": "Numpad5",
+    "numpad6": "Numpad6",
+    "numpad7": "Numpad7",
+    "numpad8": "Numpad8",
+    "numpad9": "Numpad9",
+    "numpadadd": "NumpadAdd",
+    "numpadsub": "NumpadSub",
+    "numpaddiv": "NumpadDiv",
+    "numpadmult": "NumpadMult",
+    "numpadenter": "NumpadEnter",
+    "numpaddot": "NumpadDot",
 }
 
 SETTINGS_FILENAME = "assignments.json"
@@ -110,6 +127,9 @@ DEFAULT_HEADER_LINES = [
 ]
 MODIFIER_OPTIONS = ["None", "Ctrl", "Win", "Alt", "Shift"]
 MODIFIER_PREFIX = {"Ctrl": "^", "Win": "#", "Alt": "!", "Shift": "+"}
+KEY_DEFAULT_BUTTON_BG = "#e1e1e1"
+KEY_BIND_COLOR = "#8dd38d"
+MODIFIER_ENABLED_TEXT = "Enabled"
 
 
 class AHKBuilder(tk.Tk):
@@ -129,7 +149,7 @@ class AHKBuilder(tk.Tk):
         self.modifier_combo = None
         self.current_profile_id = ""
         self.actions_by_profile = {}
-        self.key_buttons = {}
+        self.key_buttons = defaultdict(list)
         self.settings_path = Path(__file__).resolve().parent / SETTINGS_FILENAME
         self.keyboards_path = Path(__file__).resolve().parent / KEYBOARD_PROFILES_FILENAME
         self.header_path = Path(__file__).resolve().parent / SCRIPT_HEADER_FILENAME
@@ -138,6 +158,8 @@ class AHKBuilder(tk.Tk):
         self.restored_last_modifier = "None"
         self._suppress_profile_event = False
         self._modifier_event_suppress = False
+        self.enabled_check = None
+        self.enabled_var = tk.BooleanVar(value=True)
         self._load_keyboard_profiles()
         self.header_lines = self._load_script_header()
         self._load_settings()
@@ -261,20 +283,29 @@ class AHKBuilder(tk.Tk):
                 for key, entry in action_data.items():
                     if not isinstance(key, str):
                         continue
-                    target = {}
+                    modifiers = {}
                     if isinstance(entry, dict):
-                        for modifier_key, value in entry.items():
+                        for modifier_key, modifier_value in entry.items():
                             if (
                                 isinstance(modifier_key, str)
                                 and modifier_key in MODIFIER_OPTIONS
-                                and isinstance(value, str)
-                                and value.strip()
+                                and isinstance(modifier_value, dict)
                             ):
-                                target[modifier_key] = value.strip()
-                    elif isinstance(entry, str) and entry.strip():
-                        target["None"] = entry.strip()
-                    if target:
-                        cleaned[key] = target
+                                action_text = modifier_value.get("action", "")
+                                enabled = modifier_value.get("enabled", True)
+                                if isinstance(action_text, str):
+                                    text = action_text.strip()
+                                    if text or not enabled:
+                                        modifiers[modifier_key] = {
+                                            "action": text,
+                                            "enabled": bool(enabled),
+                                        }
+                    elif isinstance(entry, str):
+                        text = entry.strip()
+                        if text:
+                            modifiers["None"] = {"action": text, "enabled": True}
+                    if modifiers:
+                        cleaned[key] = modifiers
                 if cleaned:
                     sanitized[profile_id] = cleaned
         self.actions_by_profile = sanitized
@@ -307,18 +338,20 @@ class AHKBuilder(tk.Tk):
                         width=self._button_width(display, key_id),
                         relief="raised",
                         bd=2,
-                        bg="#e1e1e1",
+                        bg=KEY_DEFAULT_BUTTON_BG,
                         activebackground="#c5c5c5",
                     )
                     btn.grid(row=row_index, column=col_index, padx=2, sticky="nsew")
                     btn.configure(
                         command=lambda k=key_id, d=display, b=btn: self._select_key(k, d, b)
                     )
+                    self.key_buttons[key_id].append(btn)
                 for col in range(len(row)):
                     row_frame.grid_columnconfigure(col, weight=1)
         self._create_control_panel()
         self._apply_restored_profile()
         self._restore_selection()
+        self._refresh_button_colors()
         self._refresh_script_preview()
 
     def _create_control_panel(self):
@@ -343,7 +376,18 @@ class AHKBuilder(tk.Tk):
         self.modifier_combo = modifier_combo
         modifier_combo.pack(side="left", padx=(6, 0))
         modifier_combo.bind("<<ComboboxSelected>>", self._on_modifier_selected)
+        self._set_modifier_selection(self.modifier_var.get())
         modifier_combo.set(self.modifier_var.get())
+        status_frame = tk.Frame(detail_frame, bg="#ffffff")
+        status_frame.pack(fill="x", padx=8, pady=(0, 6))
+        self.enabled_check = tk.Checkbutton(
+            status_frame,
+            text=MODIFIER_ENABLED_TEXT,
+            bg="#ffffff",
+            variable=self.enabled_var,
+            command=self._on_enabled_change,
+        )
+        self.enabled_check.pack(side="left")
         tk.Button(detail_frame, text="Clear assignment", command=self._clear_assignment).pack(
             pady=4, padx=8, fill="x"
         )
@@ -411,20 +455,20 @@ class AHKBuilder(tk.Tk):
             display = self.key_labels.get(self.selected_key_id, self.selected_key_id)
             self._update_selected_key_label(display, self.selected_key_id)
         self._refresh_action_entry()
+        self._refresh_button_colors()
         self._save_settings()
 
     def _restore_selection(self):
         if not self.restored_last_key:
             return
-        button = self.key_buttons.get(self.restored_last_key)
-        if not button:
+        buttons = self.key_buttons.get(self.restored_last_key, [])
+        if not buttons:
             return
         display = self.key_labels.get(self.restored_last_key, self.restored_last_key)
-        self._select_key(self.restored_last_key, display, button)
+        self._select_key(self.restored_last_key, display, buttons[0])
         entry = self._get_profile_entry(self.restored_last_key)
-        stored_action = entry.get("action", "")
-        modifier = entry.get("modifier", "None")
-        self.modifier_var.set(modifier if modifier in MODIFIER_OPTIONS else "None")
+        modifier = self.modifier_var.get()
+        stored_action = entry.get(modifier, "")
         if self.restored_last_text and self.restored_last_text != stored_action:
             self.action_entry.delete("1.0", "end")
             self.action_entry.insert("1.0", self.restored_last_text)
@@ -452,13 +496,59 @@ class AHKBuilder(tk.Tk):
         if self.modifier_combo:
             self.modifier_combo.set(modifier)
         self._modifier_event_suppress = False
+        if self.enabled_check:
+            entry = self._get_profile_entry(self.selected_key_id) if self.selected_key_id else {}
+            info = entry.get(modifier, {})
+            enabled = info.get("enabled", True)
+            self.enabled_var.set(enabled)
+
+    def _set_modifier_state(self, modifier, action_text, enabled):
+        if not self.selected_key_id:
+            return False
+        profile_actions = self.actions_by_profile.setdefault(self.current_profile_id, {})
+        entry = profile_actions.setdefault(self.selected_key_id, {})
+        if not isinstance(entry, dict):
+            entry = {}
+            profile_actions[self.selected_key_id] = entry
+        text = action_text.strip()
+        if text or enabled:
+            entry[modifier] = {"action": text, "enabled": bool(enabled)}
+        else:
+            entry.pop(modifier, None)
+            if not entry:
+                profile_actions.pop(self.selected_key_id, None)
+        return True
 
     def _on_modifier_selected(self, event=None):
         if self._modifier_event_suppress:
             return
         self._refresh_action_entry()
+
+    def _on_enabled_change(self):
+        if self._modifier_event_suppress or not self.selected_key_id:
+            return
+        modifier = self.modifier_var.get()
+        action_text = self.action_entry.get("1.0", "end").strip()
+        enabled = self.enabled_var.get()
+        self._set_modifier_state(modifier, action_text, enabled)
+        self._save_settings()
+        self._refresh_script_preview()
+        self._refresh_button_colors()
+
     def _format_key_display(self, raw_key):
         cleaned = raw_key.strip()
+        lower = cleaned.lower()
+        if lower.startswith("numpad"):
+            suffix = lower.replace("numpad", "", 1)
+            display_map = {
+                "div": "/",
+                "mult": "*",
+                "add": "+",
+                "sub": "-",
+                "enter": "Enter",
+                "dot": ".",
+            }
+            return display_map.get(suffix, suffix.upper())
         if cleaned.lower() == "space":
             return "Space"
         if cleaned.isalpha():
@@ -490,6 +580,7 @@ class AHKBuilder(tk.Tk):
             chosen_modifier = "None"
         self._set_modifier_selection(chosen_modifier)
         self._refresh_action_entry()
+        self._refresh_button_colors()
 
     def _update_selected_key_label(self, display_label, key_id):
         profile_label = self.profile_label_by_id.get(self.current_profile_id, "")
@@ -506,7 +597,19 @@ class AHKBuilder(tk.Tk):
             modifier = "None"
             self._set_modifier_selection("None")
         entry = self._get_profile_entry(self.selected_key_id)
-        action_text = entry.get(modifier, "")
+        modifier_info = entry.get(modifier, {})
+        enabled = True
+        action_text = ""
+        if isinstance(modifier_info, dict):
+            action_text = modifier_info.get("action", "")
+            enabled = modifier_info.get("enabled", True)
+        elif isinstance(modifier_info, str):
+            action_text = modifier_info
+        if self.enabled_check:
+            self._modifier_event_suppress = True
+            self.enabled_var.set(enabled)
+            self.enabled_check.select() if enabled else self.enabled_check.deselect()
+            self._modifier_event_suppress = False
         self.action_entry.delete("1.0", "end")
         if action_text:
             self.action_entry.insert("1.0", action_text)
@@ -523,20 +626,13 @@ class AHKBuilder(tk.Tk):
         modifier = self.modifier_var.get()
         if modifier not in MODIFIER_OPTIONS:
             modifier = "None"
-        entry = profile_actions.setdefault(self.selected_key_id, {})
-        if not isinstance(entry, dict):
-            entry = {}
-            profile_actions[self.selected_key_id] = entry
-        if action_text:
-            entry[modifier] = action_text
-        else:
-            entry.pop(modifier, None)
-            if not entry:
-                profile_actions.pop(self.selected_key_id, None)
+        enabled = self.enabled_var.get()
+        self._set_modifier_state(modifier, action_text, enabled)
         self._refresh_script_preview()
         self.restored_last_text = action_text
         self.restored_last_modifier = modifier
         self._save_settings()
+        self._refresh_button_colors()
 
     def _clear_assignment(self):
         if not self.selected_key_id:
@@ -550,9 +646,14 @@ class AHKBuilder(tk.Tk):
                 profile_actions.pop(self.selected_key_id, None)
         self.action_entry.delete("1.0", "end")
         self.modifier_var.set("None")
+        if self.enabled_check:
+            self.enabled_var.set(True)
+            self.enabled_check.select()
         self._refresh_script_preview()
         self.restored_last_text = ""
+        self.restored_last_modifier = "None"
         self._save_settings()
+        self._refresh_button_colors()
 
     def _save_settings(self):
         clean_actions = {}
@@ -563,12 +664,23 @@ class AHKBuilder(tk.Tk):
                     continue
                 if not isinstance(entry, dict):
                     continue
-                action_text = entry.get("action", "").strip()
-                if not action_text:
-                    continue
-                modifier = entry.get("modifier", "None")
-                modifier = modifier if modifier in MODIFIER_OPTIONS else "None"
-                cleaned[key] = {"action": action_text, "modifier": modifier}
+                trimmed = {}
+                for modifier, modifier_data in entry.items():
+                    if (
+                        isinstance(modifier, str)
+                        and modifier in MODIFIER_OPTIONS
+                        and isinstance(modifier_data, dict)
+                    ):
+                        action_text = modifier_data.get("action", "")
+                        enabled = modifier_data.get("enabled", True)
+                        if not isinstance(action_text, str):
+                            continue
+                        text = action_text.strip()
+                        if not text and enabled:
+                            continue
+                        trimmed[modifier] = {"action": text, "enabled": bool(enabled)}
+                if trimmed:
+                    cleaned[key] = trimmed
             if cleaned:
                 clean_actions[profile_id] = cleaned
         last_text = ""
@@ -579,6 +691,7 @@ class AHKBuilder(tk.Tk):
             "last_key": self.selected_key_id,
             "last_profile": self.current_profile_id,
             "last_text": last_text,
+            "last_modifier": self.restored_last_modifier,
         }
         temp_path = self.settings_path.with_suffix(".tmp")
         try:
@@ -602,19 +715,52 @@ class AHKBuilder(tk.Tk):
         self.preview_box.insert("1.0", script)
         self.preview_box.configure(state="disabled")
 
+    def _key_has_binding(self, key_id):
+        entry = self.actions_by_profile.get(self.current_profile_id, {}).get(key_id, {})
+        if not isinstance(entry, dict):
+            return False
+        for modifier_data in entry.values():
+            if isinstance(modifier_data, dict):
+                enabled = modifier_data.get("enabled", True)
+                action_text = modifier_data.get("action", "")
+                if enabled and isinstance(action_text, str) and action_text.strip():
+                    return True
+        return False
+
+    def _refresh_button_colors(self):
+        for key_id, buttons in self.key_buttons.items():
+            state = KEY_BIND_COLOR if self._key_has_binding(key_id) else KEY_DEFAULT_BUTTON_BG
+            for btn in buttons:
+                btn.configure(bg=state)
+        if self.active_button:
+            self.active_button.configure(bg="#d4e0ff")
+
     def _build_script_text(self):
         lines = list(self.header_lines)
-        lines.extend(["#NoEnv", "SendMode Input", "SetWorkingDir %A_ScriptDir%", ""])
+        
         for profile in self.keyboard_profiles:
             profile_id = profile["id"]
             actions = self.actions_by_profile.get(profile_id, {})
-            valid_actions = {
-                key: entry
-                for key, entry in actions.items()
-                if isinstance(entry, dict)
-                and isinstance(entry.get("action", ""), str)
-                and entry["action"].strip()
-            }
+            valid_actions = {}
+            for key, entry in actions.items():
+                if not isinstance(entry, dict):
+                    continue
+                trimmed = {}
+                for modifier, modifier_data in entry.items():
+                    if modifier not in MODIFIER_OPTIONS:
+                        continue
+                    if not isinstance(modifier_data, dict):
+                        continue
+                    action_text = modifier_data.get("action", "")
+                    enabled = modifier_data.get("enabled", True)
+                    if not isinstance(action_text, str):
+                        continue
+                    text = action_text.strip()
+                    if not text and enabled:
+                        continue
+                    trimmed[modifier] = {"action": text, "enabled": bool(enabled)}
+                if trimmed:
+                    valid_actions[key] = trimmed
             if not valid_actions:
                 continue
             label = profile.get("label", profile_id)
@@ -624,16 +770,22 @@ class AHKBuilder(tk.Tk):
                 lines.append(f"#if {condition}")
             for key_id in sorted(valid_actions):
                 entry = valid_actions[key_id]
-                action_text = entry["action"].strip()
-                modifier = entry.get("modifier", "None")
-                prefix = MODIFIER_PREFIX.get(modifier, "")
                 ahk_key = KEY_NAME_OVERRIDES.get(key_id, key_id.upper())
-                hotkey = f"{prefix}{ahk_key}" if prefix else ahk_key
-                lines.append(f"{hotkey}::")
-                for action_line in action_text.splitlines():
-                    lines.append(f"    {action_line}")
-                lines.append("return")
-                lines.append("")
+                for modifier in sorted(entry.keys()):
+                    modifier_entry = entry[modifier]
+                    if not isinstance(modifier_entry, dict):
+                        continue
+                    enabled = bool(modifier_entry.get("enabled", True))
+                    action_text = modifier_entry.get("action", "").strip()
+                    if not enabled or not action_text:
+                        continue
+                    prefix = MODIFIER_PREFIX.get(modifier, "")
+                    hotkey = f"{prefix}{ahk_key}" if prefix else ahk_key
+                    lines.append(f"{hotkey}::")
+                    for action_line in action_text.splitlines():
+                        lines.append(f"    {action_line}")
+                    lines.append("return")
+                    lines.append("")
             if condition:
                 lines.append("#if")
             lines.append("")
