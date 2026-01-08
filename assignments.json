@@ -251,8 +251,8 @@
       }
     }
   },
-  "last_key": "d",
+  "last_key": ",",
   "last_modifier": "None",
   "last_profile": "id1",
-  "last_text": "run, \"D:\\OneDrive\\Articles\\10.Working\\[D21][20211009]ContactMechanics\\MBD.jl\\A11.start_cmdmgr_office.bat\""
+  "last_text": "ClipSaved := ClipboardAll\nClipboard := \"\"\nSend, ^c\nClipWait, 2\nif (!Clipboard) {\n    Clipboard := ClipSaved\n    return\n}\nClipboard := StrSplit(Clipboard, \"\\\\\").Pop()\nif (Clipboard = \"\") {\n    Clipboard := ClipSaved\n    return\n}\nTooltip, Copied: %Clipboard%\nSetTimer, RemoveTooltip, -1000\nreturn\nRemoveTooltip:\n    Tooltip\n    return\nRestoreClipboard:\n    Clipboard := ClipSaved\n    return"
 }
