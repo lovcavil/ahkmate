@@ -404,7 +404,7 @@ class AHKBuilder(tk.Tk):
         profile_label = self.profile_label_by_id.get(self.current_profile_id, "")
         label = f"{display_label} ({key_id})"
         if profile_label:
-            label = f"{label} 路 {profile_label}"
+            label = f"{label} · {profile_label}"
         self.selected_key_label.set(label)
 
     def _refresh_action_entry(self):
