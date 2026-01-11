@@ -27,6 +27,20 @@
           "enabled": true
         }
       },
+      "\\": {
+        "Ctrl": {
+          "action": "Run, *RunAs wt.exe -p \"Windows PowerShell\"",
+          "enabled": true
+        },
+        "None": {
+          "action": "profile := \"Windows PowerShell\"   ; \u6539\u6210\u4f60 WT \u91cc\u914d\u7f6e\u597d\u7684 profile \u540d\u79f0\uff08\u6216 GUID\uff09\n\n\nif WinExist(\"ahk_exe WindowsTerminal.exe\")\n    {\n        ; \u628a\u5df2\u6709 WT \u62c9\u5230\u524d\u53f0\uff08\u5373\u4f7f\u5b83\u5df2\u7ecf\u5728\u524d\u53f0\u4e5f\u6ca1\u5173\u7cfb\uff09\n        WinRestore, ahk_exe WindowsTerminal.exe\n        WinActivate, ahk_exe WindowsTerminal.exe\n        WinGet, hwnd, ID, ahk_exe WindowsTerminal.exe\n        DllCall(\"SetForegroundWindow\", \"ptr\", hwnd)\n\n        ; \u5728\u5df2\u6709\u7a97\u53e3\u91cc\u65b0\u5f00\u4e00\u4e2a tab\uff08\u5173\u952e\uff1a-w 0\uff09\n        Run, wt.exe -w 0 nt -p \"%profile%\"\n    }\n else\n    {\n        ; \u6ca1\u6709 WT\uff1a\u542f\u52a8\u5e76\u76f4\u63a5\u5f00 tab\n        Run, wt.exe nt -p \"%profile%\"\n\n        ; \u542f\u52a8\u540e\u7f6e\u524d\n        WinWait, ahk_exe WindowsTerminal.exe,, 3\n        if ErrorLevel\n            return\n        WinRestore, ahk_exe WindowsTerminal.exe\n        WinActivate, ahk_exe WindowsTerminal.exe\n        WinGet, hwnd, ID, ahk_exe WindowsTerminal.exe\n        DllCall(\"SetForegroundWindow\", \"ptr\", hwnd)\n    }",
+          "enabled": true
+        },
+        "Win": {
+          "action": "Run, wt.exe pwsh",
+          "enabled": true
+        }
+      },
       "a": {
         "None": {
           "action": "run, \"C:\\Program Files\\MSC.Software\\Adams\\2020_711253\\common\\mdi.bat\" \"aview\" \"ru-st\" \"i\"",
@@ -124,6 +138,12 @@
       "numpad0": {
         "None": {
           "action": "^+c",
+          "enabled": true
+        }
+      },
+      "numpad6": {
+        "None": {
+          "action": "run, \"C:\\Users\\lovca\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe\" \"C:\\Vault\\60.Dev\\70.tools\\ahkmate\\\"",
           "enabled": true
         }
       },
@@ -251,8 +271,8 @@
       }
     }
   },
-  "last_key": "numpad8",
+  "last_key": "\\",
   "last_modifier": "None",
   "last_profile": "id1",
-  "last_text": "Reload"
+  "last_text": "profile := \"Windows PowerShell\"   ; \u6539\u6210\u4f60 WT \u91cc\u914d\u7f6e\u597d\u7684 profile \u540d\u79f0\uff08\u6216 GUID\uff09\n\n\nif WinExist(\"ahk_exe WindowsTerminal.exe\")\n    {\n        ; \u628a\u5df2\u6709 WT \u62c9\u5230\u524d\u53f0\uff08\u5373\u4f7f\u5b83\u5df2\u7ecf\u5728\u524d\u53f0\u4e5f\u6ca1\u5173\u7cfb\uff09\n        WinRestore, ahk_exe WindowsTerminal.exe\n        WinActivate, ahk_exe WindowsTerminal.exe\n        WinGet, hwnd, ID, ahk_exe WindowsTerminal.exe\n        DllCall(\"SetForegroundWindow\", \"ptr\", hwnd)\n\n        ; \u5728\u5df2\u6709\u7a97\u53e3\u91cc\u65b0\u5f00\u4e00\u4e2a tab\uff08\u5173\u952e\uff1a-w 0\uff09\n        Run, wt.exe -w 0 nt -p \"%profile%\"\n    }\n else\n    {\n        ; \u6ca1\u6709 WT\uff1a\u542f\u52a8\u5e76\u76f4\u63a5\u5f00 tab\n        Run, wt.exe nt -p \"%profile%\"\n\n        ; \u542f\u52a8\u540e\u7f6e\u524d\n        WinWait, ahk_exe WindowsTerminal.exe,, 3\n        if ErrorLevel\n            return\n        WinRestore, ahk_exe WindowsTerminal.exe\n        WinActivate, ahk_exe WindowsTerminal.exe\n        WinGet, hwnd, ID, ahk_exe WindowsTerminal.exe\n        DllCall(\"SetForegroundWindow\", \"ptr\", hwnd)\n    }"
 }
