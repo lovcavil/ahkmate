@@ -102,6 +102,7 @@ KEY_NAME_OVERRIDES = {
 SETTINGS_FILENAME = "assignments.json"
 KEYBOARD_PROFILES_FILENAME = "keyboards.json"
 SCRIPT_HEADER_FILENAME = "script_header.json"
+EXPORT_PATH_FILENAME = "export_path.json"
 
 DEFAULT_HEADER_LINES = [
     "#SingleInstance force",

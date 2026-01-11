@@ -10,6 +10,7 @@ from tkinter import filedialog, messagebox, scrolledtext
 
 from .constants import (
     DEFAULT_HEADER_LINES,
+    EXPORT_PATH_FILENAME,
     KEY_BIND_COLOR,
     KEY_DEFAULT_BUTTON_BG,
     KEY_NAME_OVERRIDES,
@@ -46,6 +47,8 @@ class AHKBuilder(tk.Tk):
         self.settings_path = Path(__file__).resolve().parent.parent / SETTINGS_FILENAME
         self.keyboards_path = Path(__file__).resolve().parent.parent / KEYBOARD_PROFILES_FILENAME
         self.header_path = Path(__file__).resolve().parent.parent / SCRIPT_HEADER_FILENAME
+        self.export_path_path = Path(__file__).resolve().parent.parent / EXPORT_PATH_FILENAME
+        self.export_path = str(Path(__file__).resolve().parent.parent / "export.ahk")
         self.restored_last_key = ""
         self.restored_last_text = ""
         self.restored_last_modifier = "None"
@@ -57,6 +60,7 @@ class AHKBuilder(tk.Tk):
         self._load_keyboard_profiles()
         self.header_lines = load_script_header(self.header_path, DEFAULT_HEADER_LINES)
         self._load_settings()
+        self._load_export_path()
         self.active_button = None
         self.key_labels = {}
         self._build_layout()
@@ -144,6 +148,49 @@ class AHKBuilder(tk.Tk):
             self.current_profile_id = self.keyboard_profiles[0]["id"]
 
         self.actions_by_profile = settings.actions_by_profile
+
+    def _load_export_path(self):
+        try:
+            with open(self.export_path_path, "r", encoding="utf-8") as handle:
+                data = json.load(handle)
+                saved_path = data.get("export_path", "").strip()
+                if saved_path:
+                    self.export_path = saved_path
+        except FileNotFoundError:
+            pass
+        except (OSError, json.JSONDecodeError) as exc:
+            messagebox.showwarning(
+                "Export path load failed",
+                f"Unable to read {self.export_path_path.name}:\n{exc}",
+            )
+
+    def _save_export_path(self):
+        try:
+            with open(self.export_path_path, "w", encoding="utf-8") as handle:
+                json.dump({"export_path": self.export_path}, handle, indent=2)
+        except OSError as exc:
+            messagebox.showerror(
+                "Save export path failed",
+                f"Couldn't write {self.export_path_path.name}:\n{exc}",
+            )
+
+    def _on_export_path_changed(self, event=None):
+        new_path = self.export_path_var.get().strip()
+        if new_path and new_path != self.export_path:
+            self.export_path = new_path
+            self._save_export_path()
+
+    def _browse_export_path(self):
+        path = filedialog.asksaveasfilename(
+            defaultextension=".ahk",
+            filetypes=[("AutoHotkey script", "*.ahk"), ("All files", "*.*")],
+            initialfile=Path(self.export_path).name,
+            initialdir=str(Path(self.export_path).parent),
+        )
+        if path:
+            self.export_path = path
+            self.export_path_var.set(path)
+            self._save_export_path()
 
     def _build_layout(self):
         keyboard_frame = tk.Frame(self, bg="#f5f5f5")
@@ -239,6 +286,14 @@ class AHKBuilder(tk.Tk):
         button_frame.pack(fill="x", padx=6, pady=(0, 6))
         tk.Button(button_frame, text="Export .ahk script", command=self._export_script).pack(side="left")
         tk.Button(button_frame, text="Refresh preview", command=self._refresh_script_preview).pack(side="right")
+        save_to_frame = tk.Frame(preview_frame, bg="#ffffff")
+        save_to_frame.pack(fill="x", padx=6, pady=(0, 6))
+        tk.Label(save_to_frame, text="Save to:", bg="#ffffff").pack(side="left")
+        self.export_path_var = tk.StringVar(value=self.export_path)
+        export_path_entry = tk.Entry(save_to_frame, textvariable=self.export_path_var, width=40)
+        export_path_entry.pack(side="left", padx=(6, 0), fill="x", expand=True)
+        export_path_entry.bind("<FocusOut>", self._on_export_path_changed)
+        tk.Button(save_to_frame, text="Browse...", command=self._browse_export_path).pack(side="left", padx=(6, 0))
 
     def _add_function_dropdown(self, parent):
         drop_frame = tk.Frame(parent, bg="#ffffff")
@@ -597,11 +652,9 @@ class AHKBuilder(tk.Tk):
         if not script.strip():
             messagebox.showinfo("Empty script", "Add at least one assignment before exporting.")
             return
-        path = filedialog.asksaveasfilename(
-            defaultextension=".ahk",
-            filetypes=[("AutoHotkey script", "*.ahk"), ("All files", "*.*")],
-        )
+        path = self.export_path_var.get().strip()
         if not path:
+            messagebox.showerror("Export failed", "Please specify a save path in the 'Save to' field.")
             return
         try:
             with open(path, "w", encoding="utf-8") as handle:
